@@ -1,0 +1,15 @@
+services:
+  db:
+    image: mysql:latest
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: MyFinanceDB
+      MYSQL_USER: test_Name
+      MYSQL_PASSWORD: test_DB
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
