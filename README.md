@@ -227,6 +227,7 @@ Controle-Financeiro/
 
 ## 📚 Endpoints da API
 
+<<<<<<< HEAD
 ### Pessoas
 
 ```http
@@ -320,3 +321,9 @@ curl http://localhost:5000/api/Transactions
 ## 📄 Licença
 
 Este projeto foi desenvolvido para fins de portfólio e aprendizado.
+=======
+- Tela de pessoas com criação, edição, remoção e filtros.
+- Tela de categorias com criação e listagem com filtros.
+- Tela de transações com validações de negócio no front e no back-end.
+- Tela de relatórios com totais por pessoa, por categoria e consolidado geral.
+>>>>>>> 16c6d992a266f03fbbc076ccef11c9b41ddd4ab0
