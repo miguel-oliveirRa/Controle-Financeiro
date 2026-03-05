@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { Person, Category } from "../types";
 import { transactionApi, personApi, categoryApi } from "../services/api";
 import { TRANSACTION_TYPES, isCategoryCompatible } from "../utils/enums";
+import toast from "react-hot-toast";
 import {
   isAgeRestricted,
   isPositiveNumber,
@@ -42,7 +43,7 @@ const CreateTransaction = () => {
       setPersons(personRes.data);
       setCategories(catRes.data);
     } catch (error) {
-      console.error("Error loading data", error);
+      console.error("Erro ao carregar dados", error);
     }
   };
 
@@ -55,24 +56,24 @@ const CreateTransaction = () => {
         (p) => p.id !== undefined && p.id.toString() === form.personId,
       );
       if (selectedPerson && isAgeRestricted(selectedPerson.age, form.type)) {
-        alert("Menores de idade só podem ter despesas.");
+        toast.error("Menores de idade só podem ter despesas.");
         return;
       }
 
       const value = parseFloat(form.value);
       if (!isPositiveNumber(value)) {
-        alert("Valor deve ser um número positivo.");
+        toast.error("Valor deve ser um número positivo.");
         return;
       }
 
       if (!isValidInteger(form.categoryId)) {
-        alert("Selecione uma categoria válida.");
+        toast.error("Selecione uma categoria válida.");
         return;
       }
       const categoryId = parseInt(form.categoryId);
 
       if (!isValidInteger(form.personId)) {
-        alert("Selecione uma pessoa válida.");
+        toast.error("Selecione uma pessoa válida.");
         return;
       }
       const personId = parseInt(form.personId);
@@ -84,10 +85,11 @@ const CreateTransaction = () => {
         categoryId: categoryId,
         personId: personId,
       });
+      toast.success("Transação criada com sucesso!");
       navigate("/transactions");
     } catch (error) {
       console.error("Erro ao criar transação", error);
-      alert("Erro ao criar transação. Tente novamente.");
+      toast.error("Erro ao criar transação. Tente novamente.");
     } finally {
       setLoading(false);
     }

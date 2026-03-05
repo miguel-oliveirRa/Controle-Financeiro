@@ -14,6 +14,7 @@ public class Person
     public string Name { get; set; } = string.Empty;
 
     [Required]
+    [Range(0, 150, ErrorMessage = "Idade deve estar entre 0 e 150")]
     public int Age { get; set; }
 
     // Propriedade de navegação

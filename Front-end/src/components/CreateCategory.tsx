@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { categoryApi } from "../services/api";
+import toast from "react-hot-toast";
 
 const CreateCategory = () => {
   const [form, setForm] = useState({
@@ -20,11 +21,11 @@ const CreateCategory = () => {
       };
 
       await categoryApi.create(categoryData);
+      toast.success("Categoria criada com sucesso!");
       navigate("/categories");
     } catch (error) {
-      console.log("Erro:", error);
-      console.error("Error creating category", error);
-      alert("Erro ao criar categoria. Tente novamente.");
+      console.error("Erro ao criar categoria", error);
+      toast.error("Erro ao criar categoria. Tente novamente.");
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import type { Person } from "../types";
 import { personApi } from "../services/api";
+import toast from "react-hot-toast";
 
 const Persons = () => {
   const [persons, setPersons] = useState<Person[]>([]);
@@ -48,14 +49,17 @@ const Persons = () => {
           name: form.name,
           age: parseInt(form.age),
         });
+        toast.success("Pessoa atualizada com sucesso!");
         setEditing(null);
       } else {
         await personApi.create({ name: form.name, age: parseInt(form.age) });
+        toast.success("Pessoa criada com sucesso!");
       }
       setForm({ name: "", age: "" });
       loadPersons();
     } catch (error) {
       console.error("Erro ao salvar pessoa", error);
+      toast.error("Erro ao salvar pessoa");
     }
   };
 
@@ -65,18 +69,44 @@ const Persons = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (
-      window.confirm(
-        "Tem certeza? Isso excluirá todas as transações desta pessoa.",
-      )
-    ) {
-      try {
-        await personApi.delete(id);
-        loadPersons();
-      } catch (error) {
-        console.error("Erro ao deletar pessoa", error);
-      }
-    }
+    toast(
+      (t) => (
+        <div className="text-left">
+          <p className="font-semibold text-gray-900 mb-1">Confirmar exclusão</p>
+          <p className="text-sm text-gray-600 mb-4">
+            Tem certeza? Isso excluirá todas as transações desta pessoa.
+          </p>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded font-medium text-sm transition"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={async () => {
+                toast.dismiss(t.id);
+                try {
+                  await personApi.delete(id);
+                  toast.success("Pessoa deletada com sucesso!");
+                  loadPersons();
+                } catch (error) {
+                  console.error("Erro ao deletar pessoa", error);
+                  toast.error("Erro ao deletar pessoa");
+                }
+              }}
+              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded font-medium text-sm transition"
+            >
+              Deletar
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: Infinity,
+        position: "top-center",
+      },
+    );
   };
 
   return (
@@ -107,7 +137,7 @@ const Persons = () => {
                 onChange={(e) => setForm({ ...form, age: e.target.value })}
                 required
                 min="0"
-                max="99"
+                max="150"
                 className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -176,8 +206,8 @@ const Persons = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredPersons.map((person: Person, index: number) => (
-                  <tr key={`person-${index}`} className="hover:bg-gray-50">
+                {filteredPersons.map((person: Person) => (
+                  <tr key={person.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {person.id}
                     </td>
@@ -190,13 +220,13 @@ const Persons = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => handleEdit(person)}
-                        className="text-indigo-600 hover:text-indigo-900 mr-4"
+                        className="text-indigo-600 hover:text-indigo-900 mr-4 cursor-pointer"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => handleDelete(person.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 hover:text-red-900 cursor-pointer"
                       >
                         Deletar
                       </button>

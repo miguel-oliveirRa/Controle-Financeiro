@@ -17,6 +17,8 @@ export interface Transaction {
   type: number;
   categoryId: number;
   personId: number;
+  person?: Person;
+  category?: Category;
 }
 
 export interface PersonTotals {

@@ -11,15 +11,8 @@ const api = axios.create({
   baseURL: "http://localhost:5000/api",
 });
 
-// Garante que só objetos literais sejam percorridos na conversão recursiva
-const isPlainObject = (value: unknown): value is Record<string, unknown> =>
-  Object.prototype.toString.call(value) === "[object Object]";
-
-// Converte primeira letra para minúscula: "CategoryId" -> "categoryId"
-const toCamelKey = (key: string): string =>
-  key.length > 0 ? key[0].toLowerCase() + key.slice(1) : key;
-
-// O backend serializa enums como string (JsonStringEnumConverter), mas o frontend trabalha com enums numéricos nos tipos. Aqui convertemos apenas os campos de enum conhecidos.
+// O backend serializa enums como string (JsonStringEnumConverter),
+// mas o frontend trabalha com enums numéricos nos tipos.
 const parseEnumToNumber = (key: string, value: unknown): unknown => {
   if (typeof value === "number") return value;
   if (typeof value !== "string") return value;
@@ -40,15 +33,12 @@ const parseEnumToNumber = (key: string, value: unknown): unknown => {
   return value;
 };
 
-// Conversão profunda da resposta:
-// 1) PascalCase -> camelCase
-// 2) enum string -> enum number
-const toCamelCaseDeep = (input: unknown): unknown => {
+const convertEnumsDeep = (input: unknown): unknown => {
   if (Array.isArray(input)) {
-    return input.map((item) => toCamelCaseDeep(item));
+    return input.map((item) => convertEnumsDeep(item));
   }
 
-  if (!isPlainObject(input)) {
+  if (!input || typeof input !== "object") {
     return input;
   }
 
@@ -56,22 +46,23 @@ const toCamelCaseDeep = (input: unknown): unknown => {
   const result: Record<string, unknown> = {};
 
   for (const key of Object.keys(obj)) {
-    const newKey = toCamelKey(key);
     const rawValue = obj[key];
-    const convertedValue = toCamelCaseDeep(rawValue);
-    result[newKey] = parseEnumToNumber(newKey, convertedValue);
+    const convertedValue = convertEnumsDeep(rawValue);
+    result[key] = parseEnumToNumber(key, convertedValue);
   }
 
   return result;
 };
 
-// Normaliza tudo que vem da API para o formato esperado no frontend.
 api.interceptors.response.use(
   (response) => {
-    response.data = toCamelCaseDeep(response.data);
+    response.data = convertEnumsDeep(response.data);
     return response;
   },
-  (error) => Promise.reject(error),
+  (error) => {
+    console.error("Erro na API:", error);
+    return Promise.reject(error);
+  },
 );
 
 /**

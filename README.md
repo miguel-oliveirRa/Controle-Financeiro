@@ -1,203 +1,322 @@
-# Sistema de Controle de Gastos Residenciais
+<div align="center">
 
-Aplicação full stack para controle de gastos residenciais, separada em **Web API** (Back-end em .NET) e **Front-end** (React + TypeScript), com persistência em MySQL.
+# 💰 Sistema de Controle Financeiro
 
-## Visão geral
+**Aplicação full-stack para gestão de finanças pessoais com regras de negócio e validações robustas**
 
-O sistema permite cadastrar pessoas, categorias e transações financeiras, além de consultar relatórios consolidados por pessoa e por categoria.
+![Skills Icons](https://skillicons.dev/icons?i=dotnet,cs,react,ts,mysql,tailwind,docker)
 
-## Arquitetura do projeto
+[🚀 Demo](#-como-executar) • [🛠️ Tecnologias](#-tecnologias) • [💡 Decisões Técnicas](#-decisões-técnicas)
 
-```text
-Controle-Gastos/
-├── Back-end/      # API REST em ASP.NET Core + Entity Framework Core
-└── Front-end/     # SPA em React + TypeScript + Vite
+</div>
+
+---
+
+## 🎯 Sobre o Projeto
+
+Sistema de controle financeiro desenvolvido para demonstrar **arquitetura full-stack moderna** com foco em:
+
+- ✅ **Validações de negócio** no backend e frontend
+- ✅ **Relacionamentos de banco** com cascade delete
+- ✅ **Queries otimizadas** usando EF Core Include()
+- ✅ **UX moderna** com toast notifications e validações em tempo real
+- ✅ **API REST documentada** com OpenAPI/Scalar
+
+### Regras de Negócio Implementadas
+
+🔹 **Gestão de Pessoas**: CRUD completo com cascade delete de transações relacionadas  
+🔹 **Categorias Flexíveis**: Despesa, Receita ou Ambas  
+🔹 **Validação de Menores**: Pessoas < 18 anos só podem registrar despesas  
+🔹 **Compatibilidade**: Categorias devem ser compatíveis com tipo da transação  
+🔹 **Relatórios**: Totalizadores consolidados por pessoa e categoria
+
+---
+
+## 🛠️ Tecnologias
+
+### Backend
+
+```
+ASP.NET Core 9          → Web API REST
+Entity Framework Core   → ORM com migrations
+MySQL                → Banco relacional
+Pomelo.EFCore.MySql    → Provider MySQL
+Scalar                  → Documentação OpenAPI
 ```
 
-## Tecnologias utilizadas
+### Frontend
 
-### Back-end
+```
+React            → UI components
+TypeScript             → Type safety
+Vite                   → Build tool
+Axios                  → HTTP client
+React Router           → Navegação
+Tailwind CSS           → Estilização
+React Hot Toast        → Notificações
+```
 
-- C#
-- .NET 9 (ASP.NET Core Web API)
-- Entity Framework Core 9
-- Pomelo.EntityFrameworkCore.MySql
-- Scalar/OpenAPI (documentação da API em ambiente de desenvolvimento)
+### DevOps
 
-### Front-end
-
-- React 19
-- TypeScript
-- Vite
-- Axios
-- React Router
-- Tailwind CSS
-
-### Persistência
-
-- MySQL 8
-- Docker Compose para subir o banco localmente
-- Migrations do EF Core versionadas no projeto
+```
+Docker Compose         → Containerização MySQL
+EF Core Migrations     → Versionamento de schema
+```
 
 ---
 
-## Regras de negócio implementadas
+## 💡 Decisões Técnicas
 
-### Pessoas
+### Por que .NET 9?
 
-- Cadastro completo: criação, edição, deleção e listagem.
-- Campos:
-  - `Id` (gerado automaticamente)
-  - `Name` (máximo 200)
-  - `Age`
-- Ao excluir pessoa, suas transações são removidas automaticamente (cascade delete).
+Última versão LTS com performance otimizada e suporte completo ao EF Core 9.
 
-### Categorias
+### Por que Entity Framework Core?
 
-- Cadastro com criação e listagem.
-- Campos:
-  - `Id` (gerado automaticamente)
-  - `Description` (máximo 400)
-  - `Purpose` (`Despesa`, `Receita`, `Ambas`)
+- Migrations versionadas facilitam deploy
+- Include() otimiza queries N+1
+- Change Tracker simplifica updates
 
-### Transações
+### Por que React + TypeScript?
 
-- Cadastro com criação e listagem.
-- Campos:
-  - `Id` (gerado automaticamente)
-  - `Description` (máximo 400)
-  - `Value` (número positivo)
-  - `Type` (`Despesa` ou `Receita`)
-  - `CategoryId`
-  - `PersonId`
+TypeScript previne bugs em tempo de desenvolvimento. React oferece componentização e reatividade.
 
-Validações aplicadas:
+### Por que Tailwind?
 
-- pessoa informada deve existir;
-- categoria informada deve existir;
-- **menores de 18 anos só podem ter transações do tipo despesa**;
-- categoria deve ser compatível com o tipo da transação (ex.: tipo `Despesa` não aceita categoria com finalidade `Receita`).
+Produtividade: estilização inline sem context switching. Resultado: UI moderna em menos tempo.
 
-### Relatórios
+### Arquitetura de Dados
 
-- Totais por pessoa:
-  - total de receitas;
-  - total de despesas;
-  - saldo (`receitas - despesas`);
-  - total geral consolidado.
-- Totais por categoria:
-  - total de receitas;
-  - total de despesas;
-  - saldo;
-  - total geral consolidado.
+```
+Person (1) ----< (N) Transaction >---- (1) Category
+```
 
----
+**Relacionamentos e Regras:**
 
-## Endpoints principais da API
+🔹 **Person (CRUD Completo)**
 
-Base URL: `http://localhost:5000/api`
+- Deletar pessoa → Cascade delete remove todas transações automaticamente
+- Protege integridade: transações órfãs são impossíveis
 
-### Pessoas
+🔹 **Category (Apenas Criação e Leitura)**
 
-- `GET /api/Persons`
-- `GET /api/Persons/{id}`
-- `POST /api/Persons`
-- `PUT /api/Persons/{id}`
-- `DELETE /api/Persons/{id}`
+- Sem endpoints de UPDATE ou DELETE
+- Categorias são permanentes para manter histórico
+- Garante rastreabilidade de transações antigas
 
-### Categorias
+🔹 **Transaction (Apenas Criação e Leitura)**
 
-- `GET /api/Categories`
-- `GET /api/Categories/{id}`
-- `POST /api/Categories`
+- Sem endpoints de UPDATE ou DELETE
+- Registros imutáveis garantem auditoria
+- Única forma de deletar: via cascade ao deletar pessoa
 
-### Transações
+**Configuração no EF Core:**
 
-- `GET /api/Transactions`
-- `GET /api/Transactions/{id}`
-- `POST /api/Transactions`
+```csharp
+// Cascade delete: Person → Transactions
+modelBuilder.Entity<Transaction>()
+    .HasOne(t => t.Person)
+    .WithMany(p => p.Transactions)
+    .HasForeignKey(t => t.PersonId)
+    .OnDelete(DeleteBehavior.Cascade);
 
-### Relatórios
+// Restrict delete: Category → Transactions (proteção)
+modelBuilder.Entity<Transaction>()
+    .HasOne(t => t.Category)
+    .WithMany(c => c.Transactions)
+    .HasForeignKey(t => t.CategoryId)
+    .OnDelete(DeleteBehavior.Restrict);
+```
 
-- `GET /api/Reports/totals-by-person`
-- `GET /api/Reports/totals-by-category`
+**Por que Restrict em Category?**
+Mesmo sem endpoint DELETE, a configuração Restrict protege contra:
+
+- Deleções diretas no banco de dados
+- Queries SQL manuais acidentais
+- Futura implementação de soft-delete
 
 ---
 
-## Como executar localmente
+## 🚧 Desafios Enfrentados
 
-## 1) Pré-requisitos
+### 1. Problema N+1 Queries
 
-- .NET SDK 9
-- Node.js 20+
-- npm
-- Docker Desktop (para o MySQL)
+**Situação**: Frontend fazia 3 chamadas HTTP (transactions, persons, categories) e depois `find()` manual.
 
-## 2) Subir banco MySQL
+**Solução**: Implementei `.Include()` no backend para trazer dados relacionados em 1 query.
 
-No diretório `Back-end/Infra`:
+**Resultado**: Redução de 100+ queries para 1 query única.
+
+### 2. Conversão PascalCase ↔ camelCase
+
+**Situação**: Backend .NET retorna PascalCase, frontend espera camelCase.
+
+**Solução**: Configurei `JsonNamingPolicy.CamelCase` no backend ao invés de converter no frontend.
+
+**Resultado**: Remoção de 40 linhas de código complexo de conversão.
+
+---
+
+## 🚀 Como Executar
+
+### Pré-requisitos
+
+- [.NET 9 SDK](https://dotnet.microsoft.com/download)
+- [Node.js 20+](https://nodejs.org/)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+
+### 1️⃣ Clonar repositório
 
 ```bash
+git clone https://github.com/miguel-oliveirRa/Controle-Financeiro.git
+cd Controle-Financeiro
+```
+
+### 2️⃣ Subir banco de dados
+
+```bash
+cd Back-end/Infra
 docker compose up -d
 ```
 
-Isso cria o banco `desafio_tecnico` com volume persistente (`mysql_data`).
-
-## 3) Configurar e iniciar Back-end
-
-No diretório `Back-end`:
+### 3️⃣ Configurar backend
 
 ```bash
+cd ../
 dotnet restore
 dotnet ef database update
 dotnet run
 ```
 
-API disponível em:
+✅ API disponível em `http://localhost:5000`  
+📚 Documentação em `http://localhost:5000/scalar/v1`
 
-- `http://localhost:5000`
-
-Documentação OpenAPI/Scalar (em Development):
-
-- `http://localhost:5000/scalar/v1`
-
-## 4) Configurar e iniciar Front-end
-
-No diretório `Front-end`:
+### 4️⃣ Configurar frontend
 
 ```bash
+cd ../Front-end
 npm install
 npm run dev
 ```
 
-Aplicação disponível em (padrão do Vite):
-
-- `http://localhost:5173`
-
-> Observação: o front já está configurado para consumir a API em `http://localhost:5000/api`.
+✅ Aplicação disponível em `http://localhost:5173`
 
 ---
 
-## Persistência de dados
+## 📁 Estrutura do Projeto
 
-A persistência é feita em MySQL.
-
-- Dados permanecem após reinicialização da aplicação.
-- Ao usar Docker Compose, os dados são mantidos no volume `mysql_data`.
+```
+Controle-Financeiro/
+├── Back-end/
+│   ├── Controllers/         # Endpoints da API
+│   ├── Models/             # Entidades do domínio
+│   ├── Migrations/         # Versionamento do schema
+│   ├── Infra/              # Docker Compose
+│   └── Program.cs          # Configuração da aplicação
+│
+└── Front-end/
+    ├── src/
+    │   ├── pages/          # Componentes de página
+    │   ├── services/       # API client (Axios)
+    │   ├── types/          # Interfaces TypeScript
+    │   └── utils/          # Helpers e validações
+    └── package.json
+```
 
 ---
 
-## Funcionalidades da interface
+## 📚 Endpoints da API
 
-- Tela de pessoas com criação, edição, remoção e filtros.
-- Tela de categorias com criação e listagem com filtros.
-- Tela de transações com validações de negócio no front e no back-end.
-- Tela de relatórios com totais por pessoa, por categoria e consolidado geral.
+### Pessoas
+
+```http
+GET    /api/Persons           # Listar todas
+GET    /api/Persons/{id}      # Buscar por ID
+POST   /api/Persons           # Criar nova
+PUT    /api/Persons/{id}      # Atualizar
+DELETE /api/Persons/{id}      # Deletar (cascade)
+```
+
+### Categorias
+
+```http
+GET    /api/Categories        # Listar todas
+POST   /api/Categories        # Criar nova
+```
+
+### Transações
+
+```http
+GET    /api/Transactions      # Listar todas (com Include)
+POST   /api/Transactions      # Criar nova (com validações)
+```
+
+### Relatórios
+
+```http
+GET    /api/Reports/totals-by-person    # Totais por pessoa
+GET    /api/Reports/totals-by-category  # Totais por categoria
+```
 
 ---
 
-## Próximos passos
+## 🧪 Testando a API
 
-- Adicionar testes automatizados (API e front-end).
-- Melhorar observabilidade com logs estruturados.
-- Evoluir UX com paginação, ordenação e estados de carregamento/erro mais detalhados.
+### Scalar UI
+
+Acesse `http://localhost:5000/scalar/v1` para interface interativa.
+
+### Exemplos com cURL
+
+**Criar pessoa:**
+
+```bash
+curl -X POST http://localhost:5000/api/Persons \
+  -H "Content-Type: application/json" \
+  -d '{"name":"João Silva","age":25}'
+```
+
+**Listar transações:**
+
+```bash
+curl http://localhost:5000/api/Transactions
+```
+
+---
+
+## 🎨 Funcionalidades
+
+- ✅ **CRUD completo** de pessoas com edição inline
+- ✅ **Toast notifications** para feedback visual
+- ✅ **Filtros dinâmicos** em todas listagens
+- ✅ **Validações em tempo real** (frontend + backend)
+- ✅ **Relacionamentos otimizados** com Include()
+- ✅ **Cascade delete** automático
+- ✅ **Relatórios consolidados** com totalizadores
+- ✅ **Interface responsiva** mobile-first
+
+---
+
+## 📈 Possíveis Melhorias Futuras
+
+- [ ] Testes unitários (xUnit) e integração
+- [ ] Paginação e ordenação nas listagens
+- [ ] Gráficos de evolução financeira
+- [ ] Autenticação e multi-usuário
+- [ ] Export de relatórios (PDF/Excel)
+- [ ] Deploy automatizado (CI/CD)
+
+---
+
+## 👨‍💻 Autor
+
+**Miguel Oliveira**
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/seu-perfil)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/miguel-oliveirRa)
+
+---
+
+## 📄 Licença
+
+Este projeto foi desenvolvido para fins de portfólio e aprendizado.

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Transaction, Person, Category } from "../types";
-import { transactionApi, personApi, categoryApi } from "../services/api";
+import { transactionApi } from "../services/api";
 import {
   getTransactionTypeText,
   stringToTransactionType,
@@ -12,8 +12,6 @@ const Transactions = () => {
   const [filteredTransactions, setFilteredTransactions] = useState<
     Transaction[]
   >([]);
-  const [persons, setPersons] = useState<Person[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [filters, setFilters] = useState({
     description: "",
     type: "",
@@ -32,18 +30,28 @@ const Transactions = () => {
 
   const loadData = async () => {
     try {
-      const [transRes, personRes, catRes] = await Promise.all([
-        transactionApi.getAll(),
-        personApi.getAll(),
-        categoryApi.getAll(),
-      ]);
+      const transRes = await transactionApi.getAll();
       setTransactions(transRes.data);
-      setPersons(personRes.data);
-      setCategories(catRes.data);
     } catch (error) {
       console.error("Erro ao carregar dados", error);
     }
   };
+
+  const persons: Person[] = Array.from(
+    new Map(
+      transactions
+        .filter((t) => t.person)
+        .map((t) => [t.person!.id, t.person!]),
+    ).values(),
+  );
+
+  const categories: Category[] = Array.from(
+    new Map(
+      transactions
+        .filter((t) => t.category)
+        .map((t) => [t.category!.id, t.category!]),
+    ).values(),
+  );
 
   const filterTransactions = () => {
     let filtered = transactions;
@@ -173,40 +181,28 @@ const Transactions = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredTransactions.map(
-                  (transaction: Transaction, index: number) => (
-                    <tr
-                      key={`transaction-${index}`}
-                      className="hover:bg-gray-50"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {transaction.id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {transaction.description}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        R$ {(transaction.value || 0).toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {getTransactionTypeText(transaction.type)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {
-                          categories.find(
-                            (c) => c.id === transaction.categoryId,
-                          )?.description
-                        }
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {
-                          persons.find((p) => p.id === transaction.personId)
-                            ?.name
-                        }
-                      </td>
-                    </tr>
-                  ),
-                )}
+                {filteredTransactions.map((transaction: Transaction) => (
+                  <tr key={transaction.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {transaction.id}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transaction.description}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      R$ {(transaction.value || 0).toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {getTransactionTypeText(transaction.type)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transaction.category?.description ?? "Desconhecido"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transaction.person?.name ?? "Desconhecido"}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

@@ -243,3 +243,4 @@ C:\Users\mo736\ControleDeGastos\Back-end\obj\Debug\net9.0\refint\Back-end.dll
 C:\Users\mo736\ControleDeGastos\Back-end\obj\Debug\net9.0\Back-end.pdb
 C:\Users\mo736\ControleDeGastos\Back-end\obj\Debug\net9.0\Back-end.genruntimeconfig.cache
 C:\Users\mo736\ControleDeGastos\Back-end\obj\Debug\net9.0\ref\Back-end.dll
+C:\Users\mo736\ControleDeGastos\Back-end\obj\Debug\net9.0\Back-end.sourcelink.json

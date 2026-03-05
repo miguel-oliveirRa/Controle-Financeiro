@@ -80,4 +80,3 @@ export const isCategoryCompatible = (
   // Categoria específica deve corresponder ao tipo
   return categoryPurpose === transactionType;
 };
-

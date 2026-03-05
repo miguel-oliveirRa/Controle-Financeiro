@@ -54,11 +54,11 @@ public class PersonsController : ControllerBase
 
     // ATUALIZAR: api/Persons/5
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutPerson(int id, Person person)
+    public async Task<IActionResult> PutPerson(int id, Person personUpdate)
     {
-        if (id != person.Id)
+        if (id != personUpdate.Id)
         {
-            return BadRequest();
+            return BadRequest("ID não corresponde");
         }
 
         if (!ModelState.IsValid)
@@ -66,7 +66,14 @@ public class PersonsController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        _context.Entry(person).State = EntityState.Modified;
+        var existingPerson = await _context.Persons.FindAsync(id);
+        if (existingPerson == null)
+        {
+            return NotFound();
+        }
+
+        existingPerson.Name = personUpdate.Name;
+        existingPerson.Age = personUpdate.Age;
 
         try
         {
@@ -78,10 +85,8 @@ public class PersonsController : ControllerBase
             {
                 return NotFound();
             }
-            else
-            {
-                throw;
-            }
+
+            throw;
         }
 
         return NoContent();

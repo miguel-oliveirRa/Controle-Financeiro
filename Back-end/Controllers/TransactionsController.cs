@@ -24,6 +24,8 @@ public class TransactionsController : ControllerBase
     {
         return await _context.Transactions
             .AsNoTracking()
+            .Include(t => t.Person)
+            .Include(t => t.Category)
             .ToListAsync();
     }
 

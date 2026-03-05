@@ -24,7 +24,7 @@ const Categories = () => {
       const response = await categoryApi.getAll();
       setCategories(response.data);
     } catch (error) {
-      console.error("Error loading categories", error);
+      console.error("Erro ao carregar categorias", error);
     }
   };
 

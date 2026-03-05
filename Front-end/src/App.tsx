@@ -12,11 +12,13 @@ import {
   CreateCategory,
   CreateTransaction,
 } from "./components";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-100">
+        <Toaster position="top-right" />
         <nav className="bg-blue-600 text-white text-lg p-4">
           <div className="container mx-auto flex space-x-4">
             <NavLink
